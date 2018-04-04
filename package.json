@@ -1,0 +1,19 @@
+{
+  "name": "pxcutout",
+  "version": "0.0.1",
+  "description": "Few components - building block for efficiently built web UIs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arturkulig/pxcutout.git"
+  },
+  "author": "Artur Kulig",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/arturkulig/pxcutout/issues"
+  },
+  "homepage": "https://github.com/arturkulig/pxcutout#readme"
+}
