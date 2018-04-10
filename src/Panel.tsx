@@ -3,7 +3,6 @@ import CSS from './CSS'
 import { panelRules, StaticPanelProps } from './PanelRules'
 import { HTMLProperties } from './HTMLProperties'
 import { EventProperties } from './EventProperties'
-import { CSSProperties } from './CSSProperties'
 import { Styled } from './Styled'
 
 import {
@@ -26,10 +25,22 @@ export interface PanelHTMLProps<ELEM = HTMLElement>
 export interface PanelProps<ELEM = HTMLElement>
   extends PanelHTMLProps<ELEM>,
     PanelOwnProps {
-  still?: boolean
+  still?: boolean | string | number
   children?:
     | StateDependentMaybe<React.ReactNode>
     | StateDependentMaybe<React.ReactNode>[]
+}
+
+const STYLES_RESET: CSS.CSSProperties = {
+  marginLeft: '0',
+  marginRight: '0',
+  marginTop: '0',
+  marginBotton: '0',
+  paddingLeft: '0',
+  paddingRight: '0',
+  paddingTop: '0',
+  paddingBotton: '0',
+  boxSizing: 'border-box'
 }
 
 export class Panel<
@@ -37,23 +48,28 @@ export class Panel<
 > extends React.Component<PanelProps<ELEM>, Interactions>
   implements InteractiveComponent<ELEM> {
   protected component:
-    | React.Component<{ className: string; style: CSSProperties }>
+    | React.Component<{ className: string; style: CSS.CSSProperties }>
     | string = 'div'
 
-  protected defaultStyles: CSSProperties = {
+  protected elemStyles: CSS.CSSProperties = {
+    ...STYLES_RESET,
     display: 'flex' as 'flex',
     flexDirection: 'column',
     textAlign: 'left'
   }
 
   state: Interactions = { focus: false, press: false, hover: false }
-  styled: Styled = null
+  styled: Styled | null = null
   get element(): ELEM {
     return ((this.styled ? this.styled.element : null) as any) as ELEM
   }
 
   shouldComponentUpdate(nextProps) {
-    return nextProps.still !== true
+    return (
+      nextProps.still === false ||
+      nextProps.still == null ||
+      nextProps.still !== this.props.still
+    )
   }
 
   componentWillUnmount() {
@@ -71,7 +87,7 @@ export class Panel<
   }
 
   getInteractions(): Interactions {
-    if (this.props.interactive === false || !hoverReactive) {
+    if (this.props.interactive === false) {
       return { hover: false, focus: false, press: false }
     }
     const { hover, press, focus } = this.state
@@ -117,7 +133,7 @@ export class Panel<
       children?: React.ReactFragment
     }
 
-    const Interactions = this.getInteractions()
+    let interactions: Interactions | null = null
 
     for (const propName in props) {
       if (propName === 'still') {
@@ -136,7 +152,9 @@ export class Panel<
             ].map(
               (singleValOrPropGen: StateDependentMaybe<React.ReactNode>) => {
                 return typeof singleValOrPropGen === 'function'
-                  ? singleValOrPropGen(Interactions)
+                  ? singleValOrPropGen(
+                      interactions || (interactions = this.getInteractions())
+                    )
                   : singleValOrPropGen
               }
             )
@@ -144,7 +162,9 @@ export class Panel<
         } else {
           const val =
             typeof valOrPropGen === 'function'
-              ? valOrPropGen(Interactions)
+              ? valOrPropGen(
+                  interactions || (interactions = this.getInteractions())
+                )
               : valOrPropGen
 
           if (propName === 'style') {
@@ -159,11 +179,15 @@ export class Panel<
       }
     }
 
-    const panelStyle: CSSProperties = panelRules.exec(panelDescription)
+    const panelStyle: CSS.CSSProperties = panelRules.exec(panelDescription)
 
-    const joinedStyle: CSSProperties = ownProps.style
-      ? { ...this.defaultStyles, ...panelStyle, ...ownProps.style }
-      : { ...this.defaultStyles, ...panelStyle }
+    const joinedStyle: CSS.CSSProperties = ownProps.style
+      ? {
+          ...this.elemStyles,
+          ...panelStyle,
+          ...ownProps.style
+        }
+      : { ...this.elemStyles, ...panelStyle }
 
     return (
       <Styled
@@ -177,12 +201,12 @@ export class Panel<
 
   static createOfPrimitive<ELEM extends HTMLElement>(
     component: string,
-    defaultStyles?: CSSProperties
+    defaultStyles?: CSS.CSSProperties
   ) {
     if (defaultStyles) {
-      return class PanelDescendant extends Panel<ELEM> {
+      return class PanelDescendantWStyles extends Panel<ELEM> {
         protected component = component
-        protected defaultStyles = defaultStyles
+        protected elemStyles = defaultStyles!
       }
     }
     return class PanelDescendant extends Panel<ELEM> {
@@ -322,5 +346,3 @@ export class Panel<
   static wbr = Panel.createOfPrimitive<HTMLElement>('wbr')
   static webview = Panel.createOfPrimitive<HTMLWebViewElement>('webview')
 }
-
-export { Panel as P }

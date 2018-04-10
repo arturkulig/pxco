@@ -1,19 +1,39 @@
 {
-  "name": "pxcutout",
+  "name": "pxco",
   "version": "0.0.1",
   "description": "Few components - building block for efficiently built web UIs",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tsc -noEmit && jest"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/arturkulig/pxcutout.git"
+    "url": "git+https://github.com/arturkulig/pxco.git"
   },
   "author": "Artur Kulig",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/arturkulig/pxcutout/issues"
+    "url": "https://github.com/arturkulig/pxco/issues"
   },
-  "homepage": "https://github.com/arturkulig/pxcutout#readme"
+  "homepage": "https://github.com/arturkulig/pxco#readme",
+  "devDependencies": {
+    "@types/jest": "^22.2.2",
+    "jest": "^22.4.3",
+    "parcel-bundler": "^1.7.0",
+    "ts-jest": "^22.4.2",
+    "typescript": "^2.8.1"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "moduleFileExtensions": [ "ts", "tsx", "js", "jsx", "json", "node" ]
+  },
+  "dependencies": {
+    "@types/react": "^16",
+    "@types/react-dom": "^16",
+    "react": "^16",
+    "react-dom": "^16"
+  }
 }

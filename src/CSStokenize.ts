@@ -3,8 +3,10 @@ export function tokenizeScope(text: string): CSSParseResult {
   let remainingText = text
   while (true) {
     const { result, rest } = tokenizeValue(remainingText)
-    values.push(result)
-    remainingText = text
+    if (result) {
+      values.push(result)
+    }
+    remainingText = rest
     if (remainingText.length === 0) {
       break
     }
@@ -47,7 +49,9 @@ export function tokenizeValue(text: string): CSSParseResult {
       parts.push({ type: 'word', word: currentToken })
       currentToken = ''
       const { result, rest } = tokenizeScope(text.slice(i + 1))
-      parts.push(result)
+      if (result) {
+        parts.push(result)
+      }
       remainingText = rest
       i = 0
       continue
@@ -67,7 +71,7 @@ export function tokenizeValue(text: string): CSSParseResult {
 }
 
 export interface CSSParseResult {
-  result: CSSParseToken
+  result: CSSParseToken | null
   rest: string
 }
 

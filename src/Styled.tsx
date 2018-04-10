@@ -1,10 +1,9 @@
 import * as React from 'react'
-import { CSSProperties, CSSPropertiesNames } from './CSSProperties'
-import { StyleSink } from './StylesSink'
+import CSS from './CSS'
 
 const isBrowser = typeof window !== 'undefined'
 const TARGET_FRAME_RATE = 60
-const STACK_CONTEXT_TRIGGERS: Array<CSSPropertiesNames> = [
+const STACK_CONTEXT_TRIGGERS: Array<string> = [
   'position',
   'transform',
   'opacity',
@@ -23,17 +22,13 @@ const now =
 class Styled extends React.Component<{
   component
   componentProps
-  style: CSSProperties
+  style: CSS.CSSProperties
 }> {
   static contextTypes = {
     styleSink: () => null
   }
 
-  context: {
-    styleSink: StyleSink
-  }
-
-  ref: HTMLElement
+  ref: HTMLElement | null = null
   get element() {
     if (Styled.stylingApplicationQueue.indexOf(this) >= 0) {
       Styled.stylingApplicationQueue.splice(
@@ -45,7 +40,7 @@ class Styled extends React.Component<{
     return this.ref
   }
   changingStyles: string[] = []
-  currentVisualDesc: { className: string; style: CSSProperties } = {
+  currentVisualDesc: { className: string; style: CSS.CSSProperties } = {
     className: '',
     style: {}
   }
@@ -64,20 +59,20 @@ class Styled extends React.Component<{
     }
 
     while (Styled.stylingApplicationQueue.length) {
+      Styled.stylingApplicationQueue.splice(0, 1)[0].applyStylesImmediately()
+
       if (now() - Styled.lastFlushTS > 1000 / TARGET_FRAME_RATE) {
         Styled.lastFlushTS = now()
         requestAnimationFrame(Styled.applyMostStyling)
         return
       }
-
-      Styled.stylingApplicationQueue.splice(0, 1)[0].applyStylesImmediately()
     }
   }
 
   componentDidUpdate(prevProps) {
     for (const k in this.props.style) {
       if (
-        STACK_CONTEXT_TRIGGERS.indexOf(k as CSSPropertiesNames) < 0 &&
+        STACK_CONTEXT_TRIGGERS.indexOf(k as string) < 0 &&
         this.props.style[k] !== prevProps.style[k]
       ) {
         if (this.changingStyles.indexOf(k) < 0) {
@@ -87,12 +82,6 @@ class Styled extends React.Component<{
     }
 
     this.requestStyleApplication()
-  }
-
-  componentWillUnmount() {
-    this.ref = null
-    this.changingStyles = null
-    this.currentVisualDesc = null
   }
 
   handleRef = (ref) => {
@@ -131,7 +120,7 @@ class Styled extends React.Component<{
       this.currentVisualDesc.className = this.element.className = nextClassNames
     }
 
-    const mentionedProperties = []
+    const mentionedProperties = [] as string[]
     for (const k in visualDesc.style) {
       if (mentionedProperties.indexOf(k) < 0) {
         mentionedProperties.push(k)
@@ -144,10 +133,11 @@ class Styled extends React.Component<{
     }
 
     for (const k of mentionedProperties) {
+      const nextRule: string | CSS.CSSStyleValue = visualDesc.style[k]
       const newValue =
-        typeof visualDesc.style[k] === 'string'
-          ? visualDesc.style[k]
-          : visualDesc.style[k] ? visualDesc.style[k].toString() : null
+        typeof nextRule === 'string'
+          ? nextRule
+          : nextRule ? nextRule.toString() : null
       if (newValue !== currentStyle[k]) {
         const oldValue = this.element.style[k]
         currentStyle[k] = this.element.style[k] = newValue
@@ -185,9 +175,7 @@ class Styled extends React.Component<{
 
     const visualDesc = this.getVisualDesc()
 
-    const {
-      componentProps: { className = null, ...componentProps }
-    } = this.props
+    const { componentProps: { className = null } } = this.props
 
     return (
       <Root
@@ -205,17 +193,17 @@ class Styled extends React.Component<{
   }
 }
 
-function kebabKeysToSnakeKeys(styles: CSSProperties) {
+function kebabKeysToSnakeKeys(styles: CSS.CSSProperties) {
   if (styles == null) {
     return null
   }
   return styles
-    ? Object.keys(styles).reduce<CSSProperties>(
+    ? Object.keys(styles).reduce<CSS.CSSProperties>(
         (r, key) => ({
           ...r,
           [kebabToSnake(key)]: styles[key]
         }),
-        {} as CSSProperties
+        {} as CSS.CSSProperties
       )
     : null
 }

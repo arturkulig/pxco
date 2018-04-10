@@ -43,13 +43,17 @@ export const panelRules = new StyleInterpretations({})
   })
   .add({
     relative: (_: { relative: boolean | Directions<Scalar> }) =>
-      _.relative === false || _.relative == null
+      _.relative === false
         ? StyleInterpretations.Empty
         : _.relative === true
           ? { position: 'relative' as 'relative' }
           : {
               position: 'relative' as 'relative',
-              ...getDirectionalRules(
+              ...getDirectionalRules<
+                Scalar,
+                Scalar,
+                string | CSS.CSSStyleValue
+              >(
                 { t: 'top', b: 'bottom', l: 'left', r: 'right' },
                 _.relative,
                 scalarToCSSValue
@@ -58,13 +62,17 @@ export const panelRules = new StyleInterpretations({})
   })
   .add({
     absolute: (_: { absolute: boolean | Directions<Scalar> }) =>
-      _.absolute === false || _.absolute == null
+      _.absolute === false
         ? StyleInterpretations.Empty
         : _.absolute === true
           ? { position: 'absolute' as 'absolute' }
           : {
               position: 'absolute' as 'absolute',
-              ...getDirectionalRules(
+              ...getDirectionalRules<
+                Scalar,
+                Scalar,
+                string | CSS.CSSStyleValue
+              >(
                 { t: 'top', b: 'bottom', l: 'left', r: 'right' },
                 _.absolute,
                 scalarToCSSValue
@@ -73,13 +81,17 @@ export const panelRules = new StyleInterpretations({})
   })
   .add({
     fixed: (_: { fixed: boolean | Directions<Scalar> }) =>
-      _.fixed === false || _.fixed == null
+      _.fixed === false
         ? StyleInterpretations.Empty
         : _.fixed === true
           ? { position: 'fixed' as 'fixed' }
           : {
               position: 'fixed' as 'fixed',
-              ...getDirectionalRules(
+              ...getDirectionalRules<
+                Scalar,
+                Scalar,
+                string | CSS.CSSStyleValue
+              >(
                 { t: 'top', b: 'bottom', l: 'left', r: 'right' },
                 _.fixed,
                 scalarToCSSValue
@@ -171,7 +183,7 @@ export const panelRules = new StyleInterpretations({})
   })
   .add({
     round: (_: { round: Scalar | Diagonals<Scalar> }) =>
-      getDiagonalRules(
+      getDiagonalRules<Scalar, Scalar, string | CSS.CSSStyleValue>(
         {
           tl: 'border-top-left-radius',
           tr: 'border-top-right-radius',
@@ -289,10 +301,7 @@ export const panelRules = new StyleInterpretations({})
                             scalarToCSSValue(word.trim(), 'number')
                           )
                           .join(' ')})`
-                      : `${k}(${scalarToCSSValue(
-                          transform[k],
-                          'number'
-                        )})`
+                      : `${k}(${scalarToCSSValue(transform[k], 'number')})`
                 )
                 .join(' ')
       }
@@ -329,10 +338,7 @@ export const panelRules = new StyleInterpretations({})
   })
   .add({
     shadow: (_: { shadow: string }) => ({
-      boxShadow: _.shadow
-        .split(' ')
-        .map((w) => scalarToCSSValue(w))
-        .join(' ')
+      boxShadow: _.shadow.split(' ').map((w) => scalarToCSSValue(w)).join(' ')
     })
   })
   .add({
@@ -463,7 +469,7 @@ export type StaticPanelProps = Partial<typeof panelRules.typeSample>
 
 function borderFromScalar(subject: Scalar): string {
   if (typeof subject === 'boolean') {
-    return subject ? '1px solid black' : null
+    return subject ? '1px solid black' : ''
   }
   if (typeof subject === 'number') {
     return `${new CSS.CSSUnitValue(subject, 'px')} solid black`
@@ -485,4 +491,5 @@ function borderFromScalar(subject: Scalar): string {
     }
     return `${scalarToCSSValue(words[0])} ${words[1]} ${words[2]}`
   }
+  return ''
 }

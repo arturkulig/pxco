@@ -2,7 +2,7 @@ import {
   CSSProperties as CSSProperties_,
   CSSPropertiesNames
 } from './CSSProperties'
-import { tokenizeScope } from './CSStokenize'
+// import { tokenizeScope } from './CSStokenize'
 import { lccToSnake } from './CSSPropertyCasing'
 
 namespace CSSTyped {
@@ -31,7 +31,7 @@ namespace CSSTyped {
       this.cssText = cssText
     }
 
-    associatedProperty: CSSPropertiesNames
+    associatedProperty: CSSPropertiesNames | null = null
 
     toString() {
       return this.cssText
@@ -218,6 +218,7 @@ namespace CSSTyped {
     readonly transforms: CSSTransformComponent[]
     constructor(...transforms: CSSTransformComponent[]) {
       super(transforms.map(toString).join(' '))
+      this.transforms = transforms
       this.is2D = this.transforms.reduce<boolean>((r, i) => r && i.is2D, true)
       this.length = this.transforms.length
       this.transforms = transforms

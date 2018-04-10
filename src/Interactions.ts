@@ -11,15 +11,11 @@ export interface InteractiveComponent<ELEM extends HTMLElement>
   element: ELEM
 }
 
-export let hoverReactive: Set<InteractiveComponent<any>> = null
-export let pressReactive: Set<InteractiveComponent<any>> = null
-export let focusReactive: Set<InteractiveComponent<any>> = null
+export let hoverReactive: Set<InteractiveComponent<any>> = new Set()
+export let pressReactive: Set<InteractiveComponent<any>> = new Set()
+export let focusReactive: Set<InteractiveComponent<any>> = new Set()
 
 if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
-  hoverReactive = new Set()
-  focusReactive = new Set()
-  pressReactive = new Set()
-
   let isFrameRequested = false
   let queue = new Map<InteractiveComponent<any>, Partial<Interactions>>()
 
@@ -59,7 +55,7 @@ if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
     })
   }
 
-  const hoverBroadcast = (value) => (e: MouseEvent) => {
+  const hoverBroadcast = (value: Interactions['hover']) => (e: MouseEvent) => {
     for (const target of targetAndParents(e)) {
       for (const panel of hoverReactive) {
         if (panel.element === target) {
@@ -71,7 +67,7 @@ if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
   document.addEventListener('mouseover', hoverBroadcast(true))
   document.addEventListener('mouseout', hoverBroadcast(false))
 
-  const focusBroadcast = (value) => (e) => {
+  const focusBroadcast = (value: Interactions['focus']) => (e: FocusEvent) => {
     for (const target of targetAndParents(e)) {
       for (const panel of focusReactive) {
         if (panel.element === target) {
@@ -93,11 +89,12 @@ if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
   document.addEventListener('mousedown', pressBroadcast(1))
   document.addEventListener('mouseup', pressBroadcast(false))
 
-  const touchBroadcast = (value) => (e) => {
+  const touchBroadcast = (value) => (e: TouchEvent) => {
     for (const panel of pressReactive) {
       if (panel.element === e.target) {
+        const { force = 1 } = e.targetTouches[0]
         addUpdate(panel, {
-          press: value ? value * e.targetTouches[0].force : false
+          press: value ? value * force : false
         })
       }
     }
@@ -106,6 +103,12 @@ if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
   document.addEventListener('touchmove', touchBroadcast(1))
   document.addEventListener('touchend', touchBroadcast(false))
   document.addEventListener('touchcancel', touchBroadcast(false))
+}
+
+declare global {
+  interface Touch {
+    force?: number
+  }
 }
 
 const createEventPathGetter = () => {
@@ -118,14 +121,14 @@ const createEventPathGetter = () => {
       e
         .deepPath()
         .filter(
-          (n: Node) => n && 'nodeType' in n && n.nodeType === 1
+          (n: any) => n && 'nodeType' in n && n.nodeType === 1
         ) as HTMLElement[]
   }
   if ('path' in fakeEvent) {
-    return (e: Event & { path: Node[] }) =>
-      e.path.filter(
-        (n: Node) => n && 'nodeType' in n && n.nodeType === 1
-      ) as HTMLElement[]
+    return (e: Event & { path?: Node[] }) =>
+      (e.path
+        ? e.path.filter((n: Node) => n && 'nodeType' in n && n.nodeType === 1)
+        : []) as HTMLElement[]
   }
   return deepPath
 }

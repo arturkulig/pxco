@@ -9,7 +9,7 @@ export function scalarToCSSValue(
   unit: CSS.Unit = 'px'
 ): CSS.CSSNumericValue {
   if (typeof subject === 'boolean') {
-    return new CSS.CSSUnitValue(+subject, unit)
+    return new CSS.CSSUnitValue(subject ? 1 : 0, unit)
   }
   if (typeof subject === 'number') {
     return new CSS.CSSUnitValue(subject, unit)
@@ -22,10 +22,6 @@ export function scalarToCSSValue(
     return result
   }
   return subject
-}
-
-function identity<T>(input: T): T {
-  return input
 }
 
 export type AlignItems = 'stretch' | 'center' | 'start' | 'end' | 'initial'
