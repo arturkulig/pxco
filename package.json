@@ -4,7 +4,8 @@
   "description": "Few components - building block for efficiently built web UIs",
   "main": "index.js",
   "scripts": {
-    "test": "tsc -noEmit && jest"
+    "test": "tsc -noEmit && jest",
+    "demo": "parcel demo/index.html"
   },
   "repository": {
     "type": "git",

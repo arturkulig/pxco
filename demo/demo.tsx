@@ -8,9 +8,15 @@ export class Demo extends React.Component<{}, { n: number }> {
     this.increase()
   }
 
+  componentWillUnmount() {
+    cancelAnimationFrame(this.raf)
+  }
+
+  raf = null
+
   increase = () => {
     this.setState(({ n }) => ({ n: n + 1 }))
-    requestAnimationFrame(this.increase)
+    this.raf = requestAnimationFrame(this.increase)
   }
 
   render() {
@@ -21,13 +27,13 @@ export class Demo extends React.Component<{}, { n: number }> {
             '#' +
             [
               Math.floor(
-                (Math.sin(Date.now() / 50 + 0.2 * i) + 1) * 128
+                (Math.sin(this.state.n / 5 + 0.2 * i) + 1) * 128
               ).toString(16),
               Math.floor(
-                (Math.sin(Date.now() / 70 + 0.1 * i) + 1) * 128
+                (Math.sin(this.state.n / 7 + 0.1 * i) + 1) * 128
               ).toString(16),
               Math.floor(
-                (Math.sin(Date.now() / 130 + 0.1 * i) + 1) * 128
+                (Math.sin(this.state.n / 13 + 0.1 * i) + 1) * 128
               ).toString(16)
             ]
               .map((n) => (n.length < 1 ? '00' : n.length < 2 ? `0${n}` : n))
